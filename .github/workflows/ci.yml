@@ -28,7 +28,12 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install package with development dependencies
-        run: python -m pip install -e "./backend[dev]"
+        # dev + the optional extras the test suite exercises (Gemini and
+        # Redis tests use mocks/fakes and expect no server or API key —
+        # they only need the client packages importable). The semantic
+        # extra is intentionally excluded: its live-model test skips
+        # gracefully when fastembed is unavailable.
+        run: python -m pip install -e "./backend[dev,gemini,redis]"
 
       - name: Lint (ruff)
         working-directory: backend
