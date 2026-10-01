@@ -1,0 +1,59 @@
+/* LLMCacheX dashboard — global reset + dark developer-tool theme. */
+
+:root {
+  --bg: #0b0e14;
+  --bg-raised: #11151d;
+  --bg-panel: #141924;
+  --border: #232a38;
+  --border-strong: #303a4d;
+  --text: #c7d0de;
+  --text-strong: #eef2f8;
+  --text-dim: #7d8799;
+  --accent: #4c8dff;
+  --ok: #3fb950;
+  --warn: #d29922;
+  --err: #f85149;
+  --info: #58a6ff;
+  --mono: ui-monospace, 'Cascadia Code', 'SF Mono', Menlo, Consolas,
+    monospace;
+  --sans: system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3 {
+  color: var(--text-strong);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+button {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

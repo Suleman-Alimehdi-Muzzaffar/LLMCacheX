@@ -1,0 +1,81 @@
+# LLMCacheX CI — tests, lint and package build verification.
+#
+# This workflow intentionally contains NO publishing and NO deployment
+# steps. Releasing to PyPI is a separate, explicitly-requested action.
+
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    name: Test (${{ matrix.os }}, py${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.13"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install package with development dependencies
+        run: python -m pip install -e "./backend[dev]"
+
+      - name: Lint (ruff)
+        working-directory: backend
+        run: python -m ruff check .
+
+      - name: Run test suite
+        working-directory: backend
+        run: python -m pytest
+
+      - name: Verify installation import
+        run: >
+          python -c
+          "import llmcachex;
+          from llmcachex import cached_call, __version__;
+          print('llmcachex', __version__); assert callable(cached_call)"
+
+  package:
+    name: Build and install package
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install build tooling
+        run: python -m pip install build
+
+      - name: Build sdist and wheel
+        working-directory: backend
+        run: python -m build
+
+      - name: Show build artifacts
+        working-directory: backend
+        run: ls -l dist
+
+      - name: Install wheel into a clean environment and verify it
+        run: |
+          python -m venv "${RUNNER_TEMP}/wheel-venv"
+          "${RUNNER_TEMP}/wheel-venv/bin/python" -m pip install --quiet backend/dist/*.whl
+          "${RUNNER_TEMP}/wheel-venv/bin/python" -c "import llmcachex; from llmcachex import cached_call, __version__; print('wheel ok:', __version__)"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: backend/dist/

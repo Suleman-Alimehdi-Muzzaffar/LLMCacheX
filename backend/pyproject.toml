@@ -1,0 +1,74 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+# PyPI distribution name. The import package stays `llmcachex`
+# (src/llmcachex/): `pip install llmcachex-core` →
+# `from llmcachex import cached_call`.
+name = "llmcachex-core"
+description = "Lightweight Python caching, resilience, semantic caching, rate limiting and observability for LLM/API applications."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.13"
+keywords = ["llm", "cache", "api", "rate-limit", "retry", "sqlite", "developer-tools"]
+authors = [{ name = "Alimehdi Suleman" }]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Software Development :: Quality Assurance",
+    "Operating System :: OS Independent",
+]
+# Single source of truth: version is read from llmcachex.__version__.
+dynamic = ["version"]
+
+[project.optional-dependencies]
+# The core library has zero runtime dependencies. FastAPI/uvicorn are only
+# needed to run the local dashboard API (backend/api/), never by library users.
+api = ["fastapi>=0.115", "uvicorn>=0.30"]
+# The first real LLM provider (Google Gemini via the official google-genai
+# SDK). Optional: users who only need core caching install nothing extra.
+gemini = ["google-genai>=1.0"]
+# Second cache backend (Redis via the official redis-py client). Optional:
+# SQLite remains the default and works with zero extra dependencies.
+redis = ["redis>=5.0"]
+# Opt-in semantic caching (local ONNX embeddings via fastembed). Optional:
+# exact caching works with zero extra dependencies. No API key required.
+semantic = ["fastembed>=0.5"]
+# `build` is only needed to produce release artifacts (sdist/wheel).
+dev = [
+    "pytest>=8",
+    "fastapi>=0.115",
+    "uvicorn>=0.30",
+    "httpx>=0.27",
+    "httpx2>=2.0",
+    "build>=1.2",
+    "ruff>=0.9",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+llmcachex = ["py.typed"]
+
+[tool.setuptools.dynamic]
+version = { attr = "llmcachex.__version__" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "redis: integration tests requiring a live Redis server (skipped when unavailable; run with `pytest -m redis`)",
+    "semantic: integration tests using the real local embedding model (may download weights once; run with `pytest -m semantic`)",
+]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 88
+# Lightweight quality gate: pyflakes (F) + critical pycodestyle (E).
+# Catches unused imports, undefined names and syntax errors without
+# imposing opinionated style rules on the existing codebase.
+lint.select = ["E4", "E7", "E9", "F"]
